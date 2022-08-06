@@ -1,59 +1,77 @@
-const POST_URL = "WEBBHOOK URL";
+var POST_URL = "discord shit here";
 
 function onSubmit(e) {
-    const response = e.response.getItemResponses();
-    let items = [];
+  var form = FormApp.getActiveForm();
+  var allResponses = form.getResponses();
+  var latestResponse = allResponses[allResponses.length - 1];
+  var response = latestResponse.getItemResponses();
+  var items = [];
+  var currentEmbedCharacterNum = 0
 
-    for (const responseAnswer of response) {
-        const question = responseAnswer.getItem().getTitle();
-        const answer = responseAnswer.getResponse();
-        let parts = []
-
-        try {
-            parts = answer.match(/[\s\S]{1,1024}/g) || [];
-        } catch (e) {
-            parts = answer;
-        }
-
-        if (!answer) {
-            continue;
-        }
-
-        for (const [index, part] of Object.entries(parts)) {
-            if (index == 0) {
-                items.push({
-                    "name": question,
-                    "value": part,
-                    "inline": false
-                });
-            } else {
-                items.push({
-                    "name": question.concat(" (cont.)"),
-                    "value": part,
-                    "inline": false
-                });
-            }
-        }
+  for (var i = 0; i < response.length; i++) {
+    var question = response[i].getItem().getTitle();
+    var answer = response[i].getResponse();
+    try {
+      var parts = answer.match(/[\s\S]{1,1024}/g) || [];
+    } catch (e) {
+      var parts = answer;
     }
 
-    const options = {
-        "method": "post",
-        "headers": {
-            "Content-Type": "application/json",
-        },
-        "payload": JSON.stringify({
-            "content": "‌",
-            "embeds": [{
-                "title": "Some nice title here",
-                "color": 33023, // This is optional, you can look for decimal colour codes at https://www.webtoolkitonline.com/hexadecimal-decimal-color-converter.html
-                "fields": items,
-                "footer": {
-                    "text": "Some footer here"
-                },
-                "timestamp": new Date().toISOString()
-            }]
-        })
-    };
+    if (answer == "") {
+      continue;
+    }
 
-    UrlFetchApp.fetch(POST_URL, options);
+    if (question.length > 256){
+      question = question.substring(0, 220) + "...";
+    } 
+
+    for (var j = 0; j < parts.length; j++) {
+      currentEmbedCharacterNum += parts[j].length + question.length;
+      if (currentEmbedCharacterNum >= 5000){
+        sendEmbed(items);
+        Utilities.sleep(50)
+        currentEmbedCharacterNum = 0;
+        items = [];
+      }
+
+      if (j == 0) {
+        items.push({
+          "name": question,
+          "value": parts[j],
+          "inline": false
+        });
+      } else {
+        items.push({
+          "name": question.concat(" (cont.)"),
+          "value": parts[j],
+          "inline": false
+        });
+      }
+    }
+  }
+  sendEmbed(items);
+
 };
+
+function sendEmbed(items){
+  var options = {
+    "method": "post",
+    "headers": {
+      "Content-Type": "application/json",
+    },
+    "payload": JSON.stringify({
+      "embeds": [{
+        "title": "Some shit here",
+        "color": 33023, 
+        "fields": items,
+        "footer": {
+          "text": "Some footer here"
+        },
+        "timestamp": new Date().toISOString()
+      }]
+    })
+  };
+
+  // Post the data to the webhook.
+  UrlFetchApp.fetch(POST_URL, options);
+}
