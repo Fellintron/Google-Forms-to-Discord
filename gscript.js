@@ -1,4 +1,4 @@
-function onSubmit(e) {
+  function onSubmit(e) {
     try {
       var form = FormApp.getActiveForm();
       var responses = form.getResponses();
@@ -20,12 +20,14 @@ function onSubmit(e) {
         "contentType": "application/json"
       };
   
-      var webhookUrl = "WEBHOOK_URL_HERE"; // Please make sure you input the discord.com url and exclude canary.discord/ptb.discord or any other client
+      var webhookUrl = "WEBHOOK_URL_HERE"; // Please make sure you input the discord.com url and exclude canary.discord/ptb.discord or any other clien
       UrlFetchApp.fetch(webhookUrl, options);
       
       Logger.log("Posted the form!");
+      
+      Utilities.sleep(500);
     } catch (error) {
-      Logger.log("Can't post, help: " + error); 
+      Logger.log("Can't post, help: " + error);
     }
   }
   
