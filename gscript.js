@@ -1,57 +1,53 @@
-  function onSubmit(e) {
-    try {
-      var form = FormApp.getActiveForm();
-      var responses = form.getResponses();
-      var lastResponse = responses[responses.length - 1];
-      var response = lastResponse.getItemResponses();
-      var formData = {};
-  
-      for (var i = 0; i < response.length; i++) {
-        formData[response[i].getItem().getTitle()] = response[i].getResponse();
-      }
-  
-      var fields = [];
-      for (var key in formData) {
-        fields.push({
-          "name": key,
-          "value": formData[key],
-          "inline": false
-        });
-      }
-  
-      var embed = {
-        "title": "New form submission",
-        "color": 16711680,
-        "fields": fields,
-        "timestamp": new Date().toISOString()
-      };
-  
-      var data = {
-        "embeds": [embed]
-      };
-  
-      var options = {
-        "method": "post",
-        "payload": JSON.stringify(data),
-        "contentType": "application/json"
-      };
-  
-      var webhookUrl = "WEBHOOK_URL_HERE"; // Please make sure you input the discord.com url and exclude canary.discord/ptb.discord or any other clienT
+function onSubmit(e) {
 
-      if (ScriptProperties.getProperties().webhookUrl) {
-        webhookUrl = ScriptProperties.getProperties().webhookUrl;
-      } else {
-        webhookUrl = Browser.inputBox("Enter the Discord webhook URL:");
-        ScriptProperties.setProperties({"webhookUrl": webhookUrl});
-      }
-  
-      UrlFetchApp.fetch(webhookUrl, options);
-      
-      Logger.log("Posted the form!");
-      
-      Utilities.sleep(500);
-    } catch (error) {
-      Logger.log("Unable to post, help: " + error);
-    }
+  var form = FormApp.getActiveForm();
+
+  var responses = form.getResponses();
+
+  var lastResponse = responses[responses.length - 1];
+
+  var response = lastResponse.getItemResponses();
+
+  var formData = {};
+
+  for (var i = 0; i < response.length; i++) {
+
+    formData[response[i].getItem().getTitle()] = response[i].getResponse();
+
   }
-  
+
+  var embed = {
+    title: "New Form Submission",
+    color: 0x00FF00, 
+    fields: Object.keys(formData).map(key => {
+      return {
+        name: key,
+        value: formData[key],
+        inline: false
+      };
+    }),
+    timestamp: new Date().toISOString()
+  };
+
+  var webhookUrl = PropertiesService.getScriptProperties().getProperty('webhookUrl');
+
+  if (!webhookUrl) {
+    webhookUrl = Browser.inputBox("Enter the Discord webhook URL:");
+    PropertiesService.getScriptProperties().setProperty('webhookUrl', webhookUrl);
+  }
+
+  var data = {
+    embeds: [embed]
+  };
+
+  var options = {
+    method: "post",
+    contentType: "application/json",
+    payload: JSON.stringify(data)
+  };
+
+  UrlFetchApp.fetch(webhookUrl, options);
+
+  Logger.log("Posted form submission to Discord!");
+
+}
